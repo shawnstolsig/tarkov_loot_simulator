@@ -1,6 +1,8 @@
+# custom-additions to gitignore:
 secrets.*
 config.*
 
+# github template for Python
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
