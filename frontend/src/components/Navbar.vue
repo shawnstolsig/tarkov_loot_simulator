@@ -15,6 +15,10 @@
                     <span>Home</span>
                     <v-icon right>mdi-home</v-icon>
                 </v-btn>
+                <v-btn text to="/test" class="mr-2">
+                    <span>Test</span>
+                    <v-icon right>mdi-test-tube</v-icon>
+                </v-btn>
                 <v-btn text to="/about" class="mr-2">
                     <span>About</span>
                     <v-icon right >mdi-information</v-icon>

@@ -3,6 +3,7 @@ from . import views
 
 router = routers.DefaultRouter()
 
+router.register('items', views.ItemViewSet, basename="items")
 
 
 
