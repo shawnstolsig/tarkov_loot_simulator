@@ -25,4 +25,23 @@ class Item(models.Model):
     market_url = models.URLField(max_length=400, null=True, blank=True)
 
 
+class Container(models.Model):
+    '''
+    '   A Container represents a non-Scav/PMC lootable object in Tarkov.  Based off the EFT wiki:
+    '   https://escapefromtarkov.gamepedia.com/Looting#Searchable_Containers
+    '''
+    name = models.CharField(max_length=200, null=True, blank=True)
+    height = models.IntegerField(null=True, blank=True)
+    width = models.IntegerField(null=True, blank=True)
+    image_url = models.URLField(max_length=400, null=True, blank=True)
+
+class Spawn(models.Model):
+    '''
+    '   A Spawn represents the loot table/spawn chance information linking an item to a loot container.
+    '
+    '''
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    container = models.ForeignKey(Container, on_delete=models.CASCADE)
+    chance = models.FloatField(null=True, blank=True)  
+    rarity = models.CharField(max_length=50, null=True, blank=True)
 

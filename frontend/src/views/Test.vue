@@ -85,6 +85,7 @@
 
 <script>
 import axios from 'axios'
+import Bottleneck from 'bottleneck'
 
 export default {
 	name: 'Home',
@@ -171,48 +172,53 @@ export default {
 		
 		// update backend 
 		updateBackend(){
+
+			// DEVELOPMENT: temporary counter for development.  Set how many objects to update to backend
+			let itemCounter = 1900
+
+			// A counter for displaying progress as item info is fetched
+			let progressCount = 0
+
+			// Tarkov Rate is limited to 300 request/min.  Using Bottleneck for rate limiting
+			// Waiting 210 ms between requests results in ~285 requests per minute
+			const limiter = new Bottleneck({
+				minTime: 210
+			});
+
 			if(this.responseAllObj== null){
 				alert("Please pull all items from Tarkov Market first.")
 			} else {
 
-				// temporary counter for development.  Set how many objects to update to backend
-				let itemCounter = 600
-				let itemCount = 400 
-
 				// iterate through all items previously retrieved
 				for(let item of this.responseAllObj){
 
+					// DEVELOPMENT:  For developing, so only small portion is pulled from Tarkov Market to test
 					if(itemCounter == 0 ){
 						break
 					}
 					itemCounter--;
-					itemCount++
-					if(itemCount % 100 == 0){
-						console.log(`Completed ${itemCount}`)
+
+					// Progress message
+					if(progressCount % 100 == 0){
+						console.log(`Completed ${progressCount}`)
 					}
 
-					// when done with testing, uncomment to add sleep to prevent exceeding rate limit
-					// Tarkov Rate is limited to 300 request/min.  Waiting 210 ms between requests results in ~285 requests per minute
-					this.rateLimitPause()
-
 					// get item info from Tarkov Market by uid
-					axios({
-						method: 'get',
-						url: this.$store.getters.marketEndpoints.item,
-						params: {
-							uid: item.uid,
-						},
-						headers: {'x-api-key': this.$store.getters.marketApiKey},
-						
-					})
+					limiter.schedule(() => 
+						axios({
+							method: 'get',
+							url: this.$store.getters.marketEndpoints.item,
+							params: {
+								uid: item.uid,
+							},
+							headers: {'x-api-key': this.$store.getters.marketApiKey},
+							
+						})
+					)
 					.then(res => {
 						let pulledItem = res.data[0]
-						console.log(`Retrieved ${pulledItem.name}:`)
-						console.log(res)
-						console.log("market_url is: ")
-						console.log(`https://tarkov-market.com/item/${pulledItem.name.toLowerCase().split(' ').join('_')}`)
-						console.log('uuid is:')
-						console.log(pulledItem.uid)
+						// console.log(`Retrieved ${pulledItem.name}:`)
+						// console.log(res)
 
 						// post item to backend
 						return axios({
@@ -232,22 +238,18 @@ export default {
 								market_url: `https://tarkov-market.com/item/${pulledItem.name.toLowerCase().split(' ').join('_')}`
 							}
 						})
-					}).then(res => {
-						console.log(`Wrote/updated ${item.name} to db:`)
-						console.log(res)
+					})
+					.then(() => {
+						progressCount++
+						console.log(`${progressCount}. Wrote/updated ${item.name} to db:`)
+
+						// console.log(res)
 					})
 					.catch(error => {console.log(error)})
 				}
+			
 			}
 		},
-
-		// A couple helper functions for API rate limiting
-		sleep(ms) {
-			return new Promise(resolve => setTimeout(resolve, ms));
-		},
-		async rateLimitPause() {
-			await this.sleep(210);
-		}
 
 	},  // end methods
 	computed: {
