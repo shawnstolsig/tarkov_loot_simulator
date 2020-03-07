@@ -31,6 +31,7 @@ class Container(models.Model):
     '   https://escapefromtarkov.gamepedia.com/Looting#Searchable_Containers
     '''
     name = models.CharField(max_length=200, null=True, blank=True)
+    description = models.CharField(max_length=200, null=True, blank=True)
     height = models.IntegerField(null=True, blank=True)
     width = models.IntegerField(null=True, blank=True)
     image_url = models.URLField(max_length=400, null=True, blank=True)

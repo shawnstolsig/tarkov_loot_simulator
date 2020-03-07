@@ -17,7 +17,7 @@ export default new Vuex.Store({
 	getters: {
 		marketApiKey(state){return state.marketApiKey},
 		marketEndpoints(state){return state.marketEndpoints},
-		backendEndpoint(state){return state.backendEndpoints.api},
+		backendEndpoints(state){return state.backendEndpoints},
 	},
 	mutations: {
 	},

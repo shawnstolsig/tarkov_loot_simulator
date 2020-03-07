@@ -1,5 +1,36 @@
 <template>
 	<v-container>
+		<!-- Container spreadsheet Upload -->
+		<v-card>
+			<v-row>
+				<v-col cols="12" md="3">
+					<v-file-input
+						label="Container Spreadsheet"
+						ref="containerFileRef"
+						v-model="containerFile"
+					></v-file-input>
+				</v-col>
+				<v-col cols="12" md="3">
+					<v-btn @click="submitContainers">
+						Submit Containers
+					</v-btn>
+				</v-col>
+				<v-col cols="12" md="3">
+					<v-file-input
+						label="Spawn Chances Spreadsheet"
+						ref="tableFileRef"
+						v-model="tableFile"
+					></v-file-input>
+				</v-col>
+				<v-col cols="12" md="3">
+					<v-btn @click="submitSpawnTable">
+						Submit Spawn Table
+					</v-btn>
+				</v-col>
+
+			</v-row>
+		</v-card>
+
 		<!-- Tarkov Market Lookup by String -->
 		<v-row>
 			<v-col cols="12">
@@ -94,11 +125,18 @@ export default {
 	},
 	data(){
 		return {
+			// for testing item search
 			inputString: null,
 			responseItem: null,
+			image: '',
+
+			// for updating database with all in-game items
 			responseAllString: null,
 			responseAllObj: null,
-			image: '',
+
+			// for updating database with containers and spawn chances
+			containerFile: null,
+			tableFile: null,
 		}
 	},  // end data
 	methods: {
@@ -223,7 +261,7 @@ export default {
 						// post item to backend
 						return axios({
 							method: 'post',
-							url: `${this.$store.getters.backendEndpoint}/items/`,
+							url: `${this.$store.getters.backendEndpoints.api}/items/`,
 							data: {
 								uuid: pulledItem.uid,
 								long_name: pulledItem.name,
@@ -249,6 +287,85 @@ export default {
 				}
 			
 			}
+		},
+		
+		// submit containers information upload
+		submitContainers(){
+
+			// setup FileReader and tell it to store contents of file in string
+			let reader = new FileReader();
+			reader.onload = e => {
+				let fileString = e.target.result
+				
+				// parse fileString by newlines
+				let fileArray = fileString.trim().split('\n')
+
+				// create 2d array for each line.  each column: 0: name, 1: desc, 2: height, 3: width, 4: img url
+				for(let i = 1; i < fileArray.length; i++){
+					let container = fileArray[i].split(',')
+
+					// write each row/container to db
+					axios({
+						method: 'post',
+						url: `${this.$store.getters.backendEndpoints.api}/containers/`,
+						data: {
+							name: container[0],
+							description: container[1],
+							height: container[2],
+							width: container[3],
+							image_url: container[4],
+						},
+					})
+					.then(() => {
+						console.log(`Wrote ${container[0]} to db.`)
+					})
+					.catch(error => {console.log(error)})
+				}
+			}
+
+			// load file into file reader to trigger all the onload actions above
+			reader.readAsText(this.containerFile)
+			
+		},
+
+		// submit spawn table information upload
+		submitSpawnTable(){
+
+			// setup FileReader and tell it to store contents of file in string
+			let reader = new FileReader();
+			reader.onload = e => {
+				let fileString = e.target.result
+				
+				// parse fileString by newlines
+				let fileArray = fileString.trim().split('\n')
+
+				// create 2d array for each line.  each column: 0: container, 1: img(dont use), 2: name, 3: type, 4: chance(%), 5: Rarity, 6: min ammo, 7: max ammo
+				for(let i = 1; i < fileArray.length; i++){
+					let itemSpawnInfo = fileArray[i].split(',')
+
+					// write each row/container to db
+					axios({
+						method: 'post',
+						url: `${this.$store.getters.backendEndpoints.api}/spawns/`,
+						data: {
+							container: itemSpawnInfo[0],
+							item: itemSpawnInfo[1],
+							chance: itemSpawnInfo[4],
+							rarity: itemSpawnInfo[5],
+						},
+					})
+					.then(() => {
+						console.log(`Wrote ${itemSpawnInfo[1]} spawn chance to db.`)
+					})
+					.catch(error => {console.log(error)})
+
+					// PICK UP HERE....NESTED SERIALIZER?  CUSTOM QUERYSET in api.views.py TO MAKE SURE IT"s GETTING CORRECT ITEM/CONTAINER?
+				}
+			}
+
+			// load file into file reader to trigger all the onload actions above
+			reader.readAsText(this.tableFile)
+			
 		},
 
 	},  // end methods
