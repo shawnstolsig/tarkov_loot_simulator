@@ -5,7 +5,7 @@
 		<!-- Settings button, column labels-->
 		<v-card>
 			<v-row>
-				<v-col cols="3" md="3">
+				<v-col cols="1" md="1">
 					<v-dialog v-model="settingsDialog" width="500">
 						<template v-slot:activator="{ on }">
 							<v-btn icon color="primary" v-on="on">
@@ -50,7 +50,7 @@
 				</v-col>
 
 
-				<v-col cols="3" md="3">
+				<v-col cols="2" md="2">
 					<v-text-field
 						readonly
 						label="Wins"
@@ -59,7 +59,7 @@
 					></v-text-field>
 				</v-col>
 
-				<v-col cols="3" md="3">
+				<v-col cols="2" md="2">
 					<v-text-field
 						readonly
 						label="Losses"
@@ -68,17 +68,31 @@
 					></v-text-field>
 				</v-col>
 
-				<v-col cols="3" md="3">
+				<v-col cols="2" md="2">
 					<v-text-field
 						readonly
-						label="Money Lost"
-						v-model="moneyLost"
+						label="Money Gained"
+						v-model="moneyGainedFormatted"
 						outlined
 					></v-text-field>
 				</v-col>
 
-				<v-col cols="4" md="4">
+				<v-col cols="2" md="2">
+					<v-text-field
+						readonly
+						label="Money Lost"
+						v-model="moneyLostFormatted"
+						outlined
+					></v-text-field>
+				</v-col>
 
+				<v-col cols="2" md="2">
+					<v-text-field
+						readonly
+						label="Efficiency"
+						v-model="efficiencyPercentage"
+						outlined
+					></v-text-field>
 				</v-col>
 
 			</v-row>
@@ -120,7 +134,7 @@
 		<v-row>
 			<v-spacer></v-spacer>
 			<v-col cols="1">
-				<v-btn @click="submitChoices">
+				<v-btn @click="submitChoices" :disabled="submitDisabled">
 					Submit
 				</v-btn>
 			</v-col>
@@ -151,8 +165,10 @@ export default {
 			selectedItems: [],
 			winCount: 0,
 			lossCount: 0,
-			moneyLost: 0,
-
+			moneyLostFormatted: 0,
+			moneyGainedFormatted: 0,
+			moneyLostCalculated: 0,
+			moneyGainedCalculated: 0,
 
 		}
 	},  // end data
@@ -170,6 +186,12 @@ export default {
 
 				// push an item at random from allItems
 				let item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
+				
+				// reselect item if image is null
+				while(item.image_url == ''){
+					console.log(`${item.long_name} doesn't have an image, reselecting`)
+					item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
+				}
 				this.unselectedItems.push(item)
 			}
 		},
@@ -224,15 +246,21 @@ export default {
 				selectedValue += this.selectedItems[i].market_price
 			}
 
+			// add selected values to money gained
+			this.moneyGainedCalculated += selectedValue
+
 			// check to see if player won or lost
 			if(selectedValue == maxValue){
-				alert(`Congrats!  You won, value of selected items is ₽${selectedValue}`)
+				this.winCount++;
 			} else {
-				alert(`Sorry, you lose.  
-					 \nMax possible value: ₽${maxValue} 
-					 \nSelected Value: ₽${selectedValue}
-					 \nDelta: ₽${maxValue - selectedValue}`)
+				this.lossCount++;
+				let delta = maxValue - selectedValue
+				this.moneyLostCalculated += delta
 			}
+
+			// update the currency-formatted numbers
+			this.moneyGainedFormatted = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0 }).format(this.moneyGainedCalculated)
+			this.moneyLostFormatted = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0 }).format(this.moneyLostCalculated)
 
 			// reset game
 			this.generateItems()
@@ -260,6 +288,19 @@ export default {
 		// max pick limit is one less than item count
 		maxPickLimit(){
 			return this.itemCount - 1
+		},
+
+		// figure out if all picks have been used before enabling button
+		submitDisabled(){
+			return this.selectedItems.length != this.pickLimit
+		},
+
+		efficiencyPercentage(){
+			let ratio = this.moneyGainedCalculated / (this.moneyGainedCalculated + this.moneyLostCalculated)
+			if(isNaN(ratio)){
+				return '-'
+			} 
+			return (ratio*100).toFixed(1) + '%'
 		}
 
 	},   // end computed   
