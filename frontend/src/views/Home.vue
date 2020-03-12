@@ -1,64 +1,116 @@
 <template>
 	<v-container>
-		<!-- Game settings -->
+
+
+		<!-- Settings button, column labels-->
 		<v-card>
 			<v-row>
-				<v-spacer></v-spacer>
-				<v-col cols="4" md="4">
-					<v-text-field
-						label="Number of items"
-						v-model="itemCount"
-						type="number"
-						min='2'
-						max='300'
-					></v-text-field>
+				<v-col cols="3" md="3">
+					<v-dialog v-model="settingsDialog" width="500">
+						<template v-slot:activator="{ on }">
+							<v-btn icon color="primary" v-on="on">
+								<v-icon>mdi-settings</v-icon>
+							</v-btn>
+						</template>
+
+						<v-card>
+							<v-card-title class="title" primary-title>
+								Game Settings
+							</v-card-title>
+
+							<v-card-text>
+								<v-text-field
+									label="Number of items"
+									v-model="itemCount"
+									type="number"
+									min='2'
+									max='300'
+								></v-text-field>
+
+								<v-text-field
+									label="Number of choices"
+									v-model="pickLimit"
+									type="number"
+									min='1'
+									:max="maxPickLimit"
+								></v-text-field>
+
+							</v-card-text>
+
+							<v-divider></v-divider>
+
+							<v-card-actions>
+								<v-spacer></v-spacer>
+								<v-btn	color="primary"	text @click="saveSettings">
+									Save
+								</v-btn>
+							</v-card-actions>
+						</v-card>
+					</v-dialog>
 				</v-col>
-				<v-col cols="4" md="4">
+
+
+				<v-col cols="3" md="3">
 					<v-text-field
-						label="Number of choices"
-						v-model="pickLimit"
-						type="number"
-						min='1'
-						:max="itemCount"
+						readonly
+						label="Wins"
+						v-model="winCount"
+						outlined
 					></v-text-field>
 				</v-col>
 
-				<v-col cols="2" md="2">
-					<v-btn @click="generateItems" class="fill-width">
-						Generate
-					</v-btn>
+				<v-col cols="3" md="3">
+					<v-text-field
+						readonly
+						label="Losses"
+						v-model="lossCount"
+						outlined
+					></v-text-field>
 				</v-col>
-				<v-spacer></v-spacer>
+
+				<v-col cols="3" md="3">
+					<v-text-field
+						readonly
+						label="Money Lost"
+						v-model="moneyLost"
+						outlined
+					></v-text-field>
+				</v-col>
+
+				<v-col cols="4" md="4">
+
+				</v-col>
+
 			</v-row>
 		</v-card>
 
-		<!-- Generated  -->
-		<v-row >
+		<!-- Items -->
+		<v-row>
 			<v-spacer></v-spacer>
 			<!-- Right side: unselected items -->
 			<v-col cols="6">
-
-				<!-- The available items inventory -->
-				<v-tooltip bottom open-delay='500' v-for="i in selectedItems.length" :key="i">
+				<v-tooltip 
+					bottom 
+					open-delay='500' 
+					v-for="i in selectedItems.length" 
+					:key="i">
 					<template v-slot:activator="{ on }">
 						<img :src="selectedItems[i-1].image_url" v-on="on" @click="moveToUnselected(i-1)"/>
 					</template>
 					<span>{{ selectedItems[i-1].long_name }}</span>
 				</v-tooltip>	
-
 			</v-col>
 			
 			<v-spacer></v-spacer>
+
 			<!-- Left side: selected items -->
 			<v-col cols="6">
-
 				<v-tooltip bottom open-delay='500' v-for="i in unselectedItems.length" :key="i">
 					<template v-slot:activator="{ on }">
 						<img :src="unselectedItems[i-1].image_url" v-on="on" @click="moveToSelected(i-1)"/>
 					</template>
 					<span>{{ unselectedItems[i-1].long_name }}</span>
 				</v-tooltip>	
-
 			</v-col>
 
 			<v-spacer></v-spacer>
@@ -88,14 +140,20 @@ export default {
 	data(){
 		return {
 			// game settings
+			settingsDialog: false,
 			itemCount: 6,
 			pickLimit: 1,
-			pickCounter: 0,
+			pickCounter: 0,			
 
 			// game data
 			allItems: [],
 			unselectedItems: [],
-			selectedItems: []
+			selectedItems: [],
+			winCount: 0,
+			lossCount: 0,
+			moneyLost: 0,
+
+
 		}
 	},  // end data
 	methods: {
@@ -178,7 +236,16 @@ export default {
 
 			// reset game
 			this.generateItems()
+		},
 
+		// save settings 
+		saveSettings(){
+
+			// close dialog
+			this.settingsDialog = false
+
+			// reset game
+			this.generateItems()
 		},
 
 
@@ -189,6 +256,11 @@ export default {
 		picksRemaining(){
 			return this.pickLimit - this.pickCounter
 		},
+
+		// max pick limit is one less than item count
+		maxPickLimit(){
+			return this.itemCount - 1
+		}
 
 	},   // end computed   
 	mounted(){
@@ -209,7 +281,17 @@ export default {
 		.catch(error => {console.log(error)})
 
 
+
 	},   // end mounted
+	watch: {
+
+		// automatically lower maxPickLimit if itemCount drops to pick limit
+		itemCount: function(val){
+			if (val == this.pickLimit){
+				this.pickLimit--
+			}
+		}
+	}, 	 // end watch
 
 }
 </script>
