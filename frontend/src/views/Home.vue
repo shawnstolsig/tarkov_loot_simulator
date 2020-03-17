@@ -4,12 +4,14 @@
 
 		<!-- Settings button, column labels-->
 		<v-card>
+
+		
 			<v-row>
-				<v-col cols="1" md="1">
+				<v-col cols="2" md="2" align="center" justify="center">
 					<v-dialog v-model="settingsDialog" width="500">
 						<template v-slot:activator="{ on }">
-							<v-btn icon color="primary" v-on="on">
-								<v-icon>mdi-settings</v-icon>
+							<v-btn icon v-on="on" dark>
+								<v-icon >mdi-cog</v-icon>
 							</v-btn>
 						</template>
 
@@ -35,6 +37,23 @@
 									:max="maxPickLimit"
 								></v-text-field>
 
+								<v-text-field
+									label="Max Item Value"
+									v-model="maxValue"
+									type="number"
+									:min='minValue + 1'
+									append-icon="mdi-currency-rub"
+								></v-text-field>
+
+								<v-text-field
+									label="Min Item Value"
+									v-model="minValue"
+									type="number"
+									min='0'
+									:max="maxValue - 1"
+									append-icon="mdi-currency-rub"
+								></v-text-field>
+
 							</v-card-text>
 
 							<v-divider></v-divider>
@@ -42,7 +61,7 @@
 							<v-card-actions>
 								<v-spacer></v-spacer>
 								<v-btn	color="primary"	text @click="saveSettings">
-									Save
+									Close
 								</v-btn>
 							</v-card-actions>
 						</v-card>
@@ -72,7 +91,7 @@
 					<v-text-field
 						readonly
 						label="Money Gained"
-						v-model="moneyGainedFormatted"
+						v-model="rublesGained"
 						outlined
 					></v-text-field>
 				</v-col>
@@ -81,7 +100,7 @@
 					<v-text-field
 						readonly
 						label="Money Lost"
-						v-model="moneyLostFormatted"
+						v-model="rublesLost"
 						outlined
 					></v-text-field>
 				</v-col>
@@ -98,44 +117,59 @@
 			</v-row>
 		</v-card>
 
+
 		<!-- Items -->
-		<v-row>
+		<v-row 
+			v-for="item in thisRoundItems" 
+			:key="item.id" 
+			no-gutters
+			align="center"
+			justify="center"
+			>
+
 			<v-spacer></v-spacer>
-			<!-- Right side: unselected items -->
-			<v-col cols="6">
-				<v-tooltip 
-					bottom 
-					open-delay='500' 
-					v-for="i in selectedItems.length" 
-					:key="i">
+			<!-- left side: unselected items -->
+			<v-col cols="2">
+				<v-tooltip bottom open-delay='500' v-if="unselectedItems.includes(item)">
 					<template v-slot:activator="{ on }">
-						<img :src="selectedItems[i-1].image_url" v-on="on" @click="moveToUnselected(i-1)"/>
+						<img :src="item.image_url" v-on="on" @click="moveToSelected(item)"/>
 					</template>
-					<span>{{ selectedItems[i-1].long_name }}</span>
+					<span>{{ item.long_name }}</span>
 				</v-tooltip>	
 			</v-col>
 			
 			<v-spacer></v-spacer>
 
-			<!-- Left side: selected items -->
-			<v-col cols="6">
-				<v-tooltip bottom open-delay='500' v-for="i in unselectedItems.length" :key="i">
+			<!-- right side: selected items -->
+			<v-col cols="2">
+				<v-tooltip bottom open-delay='500' v-if="selectedItems.includes(item)">
 					<template v-slot:activator="{ on }">
-						<img :src="unselectedItems[i-1].image_url" v-on="on" @click="moveToSelected(i-1)"/>
+						<img :src="item.image_url" v-on="on" @click="moveToUnselected(item)"/>
 					</template>
-					<span>{{ unselectedItems[i-1].long_name }}</span>
+					<span>{{ item.long_name }}</span>
 				</v-tooltip>	
 			</v-col>
 
 			<v-spacer></v-spacer>
+
+			<!-- Show values after submitting answers -->
+			<v-col cols="2">
+				<v-chip v-if="showValues" :color="correctItems.includes(item) ? 'success' : 'error'">
+					{{ showRubles(item.market_price) }}
+				</v-chip>
+			</v-col>
+
 		</v-row>
 
 		<!-- Submit button -->
 		<v-row>
 			<v-spacer></v-spacer>
 			<v-col cols="1">
-				<v-btn @click="submitChoices" :disabled="submitDisabled">
-					Submit
+				<v-btn 
+				@click="submitChoices" 
+				:disabled="submitDisabled" 
+				:color="buttonColor">
+					{{showValues ? "Next" : "Submit"}}
 				</v-btn>
 			</v-col>
 			<v-spacer></v-spacer>
@@ -157,18 +191,22 @@ export default {
 			settingsDialog: false,
 			itemCount: 6,
 			pickLimit: 1,
-			pickCounter: 0,			
+			pickCounter: 0,
+			maxValue: 1000000000,
+			minValue: 0,			
 
 			// game data
 			allItems: [],
+			thisRoundItems: [],
 			unselectedItems: [],
 			selectedItems: [],
+			correctItems: [],
 			winCount: 0,
 			lossCount: 0,
-			moneyLostFormatted: 0,
-			moneyGainedFormatted: 0,
-			moneyLostCalculated: 0,
-			moneyGainedCalculated: 0,
+			moneyLost: 0,
+			moneyGained: 0,
+			showValues: false,
+			buttonColor: '',
 
 		}
 	},  // end data
@@ -177,9 +215,13 @@ export default {
 		// Generate random items
 		generateItems(){
 			// reset game data
+			this.showValues = false;
+			this.thisRoundItems = [];
 			this.unselectedItems = [];
 			this.selectedItems = [];
+			this.correctItems = [];
 			this.pickCounter = 0;
+			this.buttonColor = '';
 
 			// loop through req'd num of items
 			for(let i = 0; i < parseInt(this.itemCount); i++){
@@ -192,33 +234,49 @@ export default {
 					console.log(`${item.long_name} doesn't have an image, reselecting`)
 					item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
 				}
+
+				// reselect item if item has already selected
+				while(this.thisRoundItems.includes(item)){
+					console.log(`${item.long_name} already selected, reselecting`)
+					item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
+				}
+
+				// reselect item if item is over maxValue or under minValue
+				while(item.market_price > this.maxValue || item.market_price < this.minValue){
+					console.log(`${item.long_name} is outside value range, reselecting`)
+					item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
+				}
+
+				// push item, once satisfactory item has been found
 				this.unselectedItems.push(item)
+				this.thisRoundItems.push(item)
 			}
 		},
 
 		// Move from unselected to selected
-		moveToSelected(i){
-			// check to see if limit reached
-			if(this.picksRemaining == 0){
-				// do nothing
-				alert("No picks remaining")
-				
-			} else {
-				// push onto selected, remove from unselected
-				this.selectedItems.push(this.unselectedItems[i]);
-				this.unselectedItems.splice(i,1);
+		moveToSelected(item){
 
-				// increment pick counter
-				this.pickCounter++;
-			}
+			// if limit is reached, remove last item first
+			if(this.picksRemaining == 0){
+				// remove last item
+				this.unselectedItems.push(this.selectedItems.pop())
+				this.pickCounter--;
+			} 
+
+			// push onto selected, remove from unselected
+			this.selectedItems.push(item);
+			this.unselectedItems = this.unselectedItems.filter(i => i.uuid != item.uuid);
+
+			// increment pick counter
+			this.pickCounter++;
 
 		},
 
 		// Move from selected to unselected
-		moveToUnselected(i){
+		moveToUnselected(item){
 			// push onto unselected, remove from selected
-			this.unselectedItems.push(this.selectedItems[i]);
-			this.selectedItems.splice(i,1);
+			this.unselectedItems.push(item);
+			this.selectedItems = this.selectedItems.filter(i => i.uuid != item.uuid);
 
 			// decrement pick counter
 			this.pickCounter--;
@@ -227,43 +285,51 @@ export default {
 		// Submit choices for grading
 		submitChoices(){
 
-			// create array of items ordered by value high to low
-			let orderedItems = this.selectedItems.concat(this.unselectedItems)
-			orderedItems = orderedItems.sort( function(a, b){return b.market_price-a.market_price} )
+			// if showing answer
+			if (this.showValues){
+				// reset game
+				this.generateItems()
+			} 
+			// if not showing answers
+			else {
 
-			// figure out max possible value
-			let maxValue = 0; 
-			for(let i = 0; i < this.pickLimit; i++){
-				// should trader price be considered?  currently only looking at market price
+				// create array of items ordered by value high to low
+				let orderedItems = this.selectedItems.concat(this.unselectedItems)
+				orderedItems = orderedItems.sort( function(a, b){return b.market_price-a.market_price} )
 
-				// pickLimit cannot be larger than itemCount/orderedItems.length, so no index errors will occur
-				maxValue += orderedItems[i].market_price
+				// figure out max possible value
+				let maxValue = 0; 
+				for(let i = 0; i < this.pickLimit; i++){
+					// should trader price be considered?  currently only looking at market price
+
+					// pickLimit cannot be larger than itemCount/orderedItems.length, so no index errors will occur
+					maxValue += orderedItems[i].market_price;
+					this.correctItems.push(orderedItems[i]);
+				}
+
+				// get selectedItems value
+				let selectedValue = 0;
+				for(let i = 0; i < this.selectedItems.length; i++){
+					selectedValue += this.selectedItems[i].market_price
+				}
+
+				// add selected values to money gained
+				this.moneyGained += selectedValue
+
+				// check to see if player won or lost
+				if(selectedValue == maxValue){
+					this.buttonColor = 'success';
+					this.winCount++;
+				} else {
+					this.buttonColor = 'error';
+					this.lossCount++;
+					let delta = maxValue - selectedValue
+					this.moneyLost += delta
+				}
+
+				// show item values
+				this.showValues = true;
 			}
-
-			// get selectedItems value
-			let selectedValue = 0;
-			for(let i = 0; i < this.selectedItems.length; i++){
-				selectedValue += this.selectedItems[i].market_price
-			}
-
-			// add selected values to money gained
-			this.moneyGainedCalculated += selectedValue
-
-			// check to see if player won or lost
-			if(selectedValue == maxValue){
-				this.winCount++;
-			} else {
-				this.lossCount++;
-				let delta = maxValue - selectedValue
-				this.moneyLostCalculated += delta
-			}
-
-			// update the currency-formatted numbers
-			this.moneyGainedFormatted = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0 }).format(this.moneyGainedCalculated)
-			this.moneyLostFormatted = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0 }).format(this.moneyLostCalculated)
-
-			// reset game
-			this.generateItems()
 		},
 
 		// save settings 
@@ -274,6 +340,11 @@ export default {
 
 			// reset game
 			this.generateItems()
+		},
+
+		// helper for converting to rubles
+		showRubles(n){
+			return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0 }).format(n)
 		},
 
 
@@ -295,13 +366,24 @@ export default {
 			return this.selectedItems.length != this.pickLimit
 		},
 
+		// compute efficiency of selections 
 		efficiencyPercentage(){
-			let ratio = this.moneyGainedCalculated / (this.moneyGainedCalculated + this.moneyLostCalculated)
+			let ratio = this.moneyGained / (this.moneyGained + this.moneyLost)
 			if(isNaN(ratio)){
 				return '-'
 			} 
 			return (ratio*100).toFixed(1) + '%'
-		}
+		},
+
+		// show rubles gained
+		rublesGained(){
+			return this.showRubles(this.moneyGained)
+		},
+
+		// show rubles lost
+		rublesLost(){
+			return this.showRubles(this.moneyLost)
+		},
 
 	},   // end computed   
 	mounted(){
@@ -331,7 +413,27 @@ export default {
 			if (val == this.pickLimit){
 				this.pickLimit--
 			}
-		}
+		},
+
+		// automatically raise maxLimit if minValue is >= maxValue
+		minValue: function(val){
+			val = parseInt(val)
+			if(val >= this.maxValue){
+				this.maxValue = val + 1
+			}
+		},
+		
+		// automatically lower minValue if maxValue is <= maxValue
+		maxValue: function(val){
+			val = parseInt(val)
+			if(val <= this.minValue){
+				this.minValue = this.maxValue - 1
+			}
+			if(val <= 1){
+				this.minValue = 0
+				this.maxValue = 1
+			}
+		},
 	}, 	 // end watch
 
 }
