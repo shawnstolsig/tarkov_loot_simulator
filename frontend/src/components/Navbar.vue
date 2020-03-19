@@ -1,31 +1,33 @@
 <template>
-    <nav>
-        <v-app-bar app>
-            
-            <!-- Site logo/title -->
-            <v-toolbar-title>
-                <span class="title">EFT: Loot Trainer</span>
-            </v-toolbar-title>
-
-            <v-spacer></v-spacer>
+    <v-app-bar app clipped-left>
         
-            <!-- Toolbar buttons -->
-            <v-toolbar-items>
-                <v-btn text to="/" class="mr-2">
-                    <span>Home</span>
-                    <v-icon right>mdi-home</v-icon>
-                </v-btn>
-                <v-btn text to="/admin" class="mr-2">
-                    <span>Admin</span>
-                    <v-icon right>mdi-shield-account</v-icon>
-                </v-btn>
-                <v-btn text to="/about" class="mr-2">
-                    <span>About</span>
-                    <v-icon right >mdi-information</v-icon>
-                </v-btn>
-            </v-toolbar-items>
-        </v-app-bar>
-    </nav>
+        <!-- Site logo/title -->
+        <v-img 
+            :src="require('@/assets/logo.png')"
+            contain
+            max-height="64"
+            max-width="200"
+        ></v-img>
+        <v-toolbar-title>Loot Trainer</v-toolbar-title>
+
+        <v-spacer></v-spacer>
+    
+        <!-- Toolbar buttons -->
+        <v-toolbar-items>
+            <v-btn text to="/" class="mr-2">
+                <span>Home</span>
+                <v-icon right>mdi-home</v-icon>
+            </v-btn>
+            <v-btn text to="/admin" class="mr-2">
+                <span>Admin</span>
+                <v-icon right>mdi-shield-account</v-icon>
+            </v-btn>
+            <v-btn text to="/about" class="mr-2">
+                <span>About</span>
+                <v-icon right >mdi-information</v-icon>
+            </v-btn>
+        </v-toolbar-items>
+    </v-app-bar>
 </template>
 
 

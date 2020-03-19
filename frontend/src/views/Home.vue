@@ -1,19 +1,94 @@
 <template>
 	<v-container>
 
+		<!-- Navigation drawer for game info -->
+		<v-navigation-drawer permanent app clipped>
+			<v-list-item>
+				<v-list-item-content>
+					<v-list-item-title class="title">
+						Game Results
+					</v-list-item-title>
+				</v-list-item-content>
+			</v-list-item>
 
-		<!-- Settings button, column labels-->
-		<v-card>
+			<v-divider></v-divider>
 
-		
-			<v-row>
-				<v-col cols="2" md="2" align="center" justify="center">
-					<v-dialog v-model="settingsDialog" width="500">
-						<template v-slot:activator="{ on }">
-							<v-btn icon v-on="on" dark>
-								<v-icon >mdi-cog</v-icon>
-							</v-btn>
-						</template>
+			<v-list	dense nav>
+
+				<!-- Correct round counter -->
+				<v-list-item>
+					<v-list-item-icon>
+						<v-icon>mdi-check-outline</v-icon>
+					</v-list-item-icon>
+
+					<v-list-item-content>
+						<v-list-item-title>Correct</v-list-item-title>
+						<v-list-item-subtitle>{{ winCount }}</v-list-item-subtitle>
+					</v-list-item-content>
+				</v-list-item>
+
+				<!-- Incorrect round counter -->
+				<v-list-item>
+					<v-list-item-icon>
+						<v-icon>mdi-close-outline</v-icon>
+					</v-list-item-icon>
+
+					<v-list-item-content>
+						<v-list-item-title>Incorrect</v-list-item-title>
+						<v-list-item-subtitle>{{ lossCount }}</v-list-item-subtitle>
+					</v-list-item-content>
+				</v-list-item>
+
+				<!-- Money Gained Counter -->
+				<v-list-item>
+					<v-list-item-icon>
+						<v-icon>mdi-trending-up</v-icon>
+					</v-list-item-icon>
+
+					<v-list-item-content>
+						<v-list-item-title>Money Gained</v-list-item-title>
+						<v-list-item-subtitle>{{ rublesGained }}</v-list-item-subtitle>
+					</v-list-item-content>
+				</v-list-item>
+
+				<!-- Money Lost Counter -->
+				<v-list-item>
+					<v-list-item-icon>
+						<v-icon>mdi-trending-down</v-icon>
+					</v-list-item-icon>
+
+					<v-list-item-content>
+						<v-list-item-title>Money Lost</v-list-item-title>
+						<v-list-item-subtitle>{{ rublesLost }}</v-list-item-subtitle>
+					</v-list-item-content>
+				</v-list-item>
+
+				<!-- Efficiency -->
+				<v-list-item>
+					<v-list-item-icon>
+						<v-icon>mdi-percent</v-icon>
+					</v-list-item-icon>
+
+					<v-list-item-content>
+						<v-list-item-title>Efficiency</v-list-item-title>
+						<v-list-item-subtitle>{{ efficiencyPercentage }}</v-list-item-subtitle>
+					</v-list-item-content>
+				</v-list-item>
+
+				<v-divider></v-divider>
+				
+				<!-- Settings -->
+				<v-list-item link @click="settingsDialog = true">
+					<v-list-item-icon>
+						<v-icon>mdi-cog</v-icon>
+					</v-list-item-icon>
+
+					<v-list-item-content>
+						<v-list-item-title>Settings...</v-list-item-title>
+					</v-list-item-content>
+				</v-list-item>
+
+				<v-dialog v-model="settingsDialog" width="500">
 
 						<v-card>
 							<v-card-title class="title" primary-title>
@@ -66,57 +141,8 @@
 							</v-card-actions>
 						</v-card>
 					</v-dialog>
-				</v-col>
-
-
-				<v-col cols="2" md="2">
-					<v-text-field
-						readonly
-						label="Wins"
-						v-model="winCount"
-						outlined
-					></v-text-field>
-				</v-col>
-
-				<v-col cols="2" md="2">
-					<v-text-field
-						readonly
-						label="Losses"
-						v-model="lossCount"
-						outlined
-					></v-text-field>
-				</v-col>
-
-				<v-col cols="2" md="2">
-					<v-text-field
-						readonly
-						label="Money Gained"
-						v-model="rublesGained"
-						outlined
-					></v-text-field>
-				</v-col>
-
-				<v-col cols="2" md="2">
-					<v-text-field
-						readonly
-						label="Money Lost"
-						v-model="rublesLost"
-						outlined
-					></v-text-field>
-				</v-col>
-
-				<v-col cols="2" md="2">
-					<v-text-field
-						readonly
-						label="Efficiency"
-						v-model="efficiencyPercentage"
-						outlined
-					></v-text-field>
-				</v-col>
-
-			</v-row>
-		</v-card>
-
+			</v-list>
+		</v-navigation-drawer>
 
 		<!-- Items -->
 		<v-row 
@@ -154,7 +180,7 @@
 
 			<!-- Show values after submitting answers -->
 			<v-col cols="2">
-				<v-chip v-if="showValues" :color="correctItems.includes(item) ? 'success' : 'error'">
+				<v-chip v-if="showValues" :color="correctItems.includes(item) ? 'success' : 'error'" :href="item.wiki_url" target="_blank">
 					{{ showRubles(item.market_price) }}
 				</v-chip>
 			</v-col>
@@ -183,7 +209,7 @@ import axios from 'axios'
 export default {
 	name: 'Home',
 	components: {
-		
+
 	},
 	data(){
 		return {
@@ -201,13 +227,14 @@ export default {
 			unselectedItems: [],
 			selectedItems: [],
 			correctItems: [],
+			showValues: false,
+			buttonColor: '',
+
+			// for nav drawer
 			winCount: 0,
 			lossCount: 0,
 			moneyLost: 0,
 			moneyGained: 0,
-			showValues: false,
-			buttonColor: '',
-
 		}
 	},  // end data
 	methods: {
@@ -256,30 +283,40 @@ export default {
 		// Move from unselected to selected
 		moveToSelected(item){
 
-			// if limit is reached, remove last item first
-			if(this.picksRemaining == 0){
-				// remove last item
-				this.unselectedItems.push(this.selectedItems.pop())
-				this.pickCounter--;
-			} 
+			// if showing values, then round is over...on click, redirect to items wiki page
+			if(this.showValues){
+				window.open(item.wiki_url, '_blank');
+			} else {
+				// if limit is reached, remove last item first
+				if(this.picksRemaining == 0){
+					// remove last item
+					this.unselectedItems.push(this.selectedItems.pop())
+					this.pickCounter--;
+				} 
 
-			// push onto selected, remove from unselected
-			this.selectedItems.push(item);
-			this.unselectedItems = this.unselectedItems.filter(i => i.uuid != item.uuid);
+				// push onto selected, remove from unselected
+				this.selectedItems.push(item);
+				this.unselectedItems = this.unselectedItems.filter(i => i.uuid != item.uuid);
 
-			// increment pick counter
-			this.pickCounter++;
-
+				// increment pick counter
+				this.pickCounter++;
+			}
 		},
 
 		// Move from selected to unselected
 		moveToUnselected(item){
-			// push onto unselected, remove from selected
-			this.unselectedItems.push(item);
-			this.selectedItems = this.selectedItems.filter(i => i.uuid != item.uuid);
 
-			// decrement pick counter
-			this.pickCounter--;
+			// if showing values, then round is over...on click, redirect to items wiki page
+			if(this.showValues){
+				window.open(item.wiki_url, '_blank');
+			} else {
+				// push onto unselected, remove from selected
+				this.unselectedItems.push(item);
+				this.selectedItems = this.selectedItems.filter(i => i.uuid != item.uuid);
+
+				// decrement pick counter
+				this.pickCounter--;
+			}
 		},
 
 		// Submit choices for grading
@@ -375,7 +412,7 @@ export default {
 			return (ratio*100).toFixed(1) + '%'
 		},
 
-		// show rubles gained
+        // show rubles gained
 		rublesGained(){
 			return this.showRubles(this.moneyGained)
 		},
