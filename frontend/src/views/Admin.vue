@@ -93,6 +93,9 @@
 									<v-btn @click="updateBackend">
 										Post to DB
 									</v-btn>
+									<v-btn @click="updateAllItems">
+										Fetch and Post (new /all)
+									</v-btn>
 								</v-col>
 							</v-row>
 
@@ -288,7 +291,75 @@ export default {
 			
 			}
 		},
+
+		updateAllItems(){
+			console.log("Pulling all items from Tarkov Market API")
+			axios({
+				method: 'get',
+				url: this.$store.getters.marketEndpoints.all,
+				headers: {'x-api-key': this.$store.getters.marketApiKey},			
+			})
+			.then(res => {
+				console.log("Response from all endpoint:")
+				console.log(res)
+
+				// Load each property seperated by newline
+				if(res.data.length > 0 ){
+					
+					// save data object
+					this.responseAllObj = res.data
+
+					// write data to website backend
+					for(let item of res.data){
+						this.writeItemToBackend(item)
+					}
+
+					// create string for display in admin panel
+					this.responseAllString = '';
+					for(let hit of res.data){
+						for (let prop in hit){
+							this.responseAllString += `${prop}: ${hit[prop]}\n`
+						}
+						this.responseAllString += '\n'
+					}
+
+				} else {
+					this.responseAllString = "No results found.";
+				}
+
+			})
+			.catch(error => {console.log(error)})
+		},
 		
+		// helper function for writing single item to db
+		writeItemToBackend(pulledItem){
+			axios({
+				method: 'post',
+				url: `${this.$store.getters.backendEndpoints.api}/items/`,
+				data: {
+					uuid: pulledItem.uid,
+					long_name: pulledItem.name,
+					short_name: pulledItem.shortName,
+					market_price: pulledItem.avg24hPrice,
+					trader_price: pulledItem.traderPrice,
+					trader_name: pulledItem.traderName,
+					trader_currency: pulledItem.traderPriceCur,
+					slots: pulledItem.slots,
+					image_url: pulledItem.img,
+					wiki_url: pulledItem.wikiLink,
+					market_url: `https://tarkov-market.com/item/${pulledItem.name.toLowerCase().split(' ').join('_')}`
+				}
+			})
+			.then(() => {
+				console.log(`Wrote/updated ${pulledItem.name} to db:`)
+			})
+			.catch(error => {
+				console.log(`Failed to write ${pulledItem.name} to db.`)
+				console.log(error)}
+			)
+		},
+
+
 		// submit containers information upload
 		submitContainers(){
 

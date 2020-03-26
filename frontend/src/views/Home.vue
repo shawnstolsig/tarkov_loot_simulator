@@ -1,205 +1,235 @@
 <template>
-	<v-container>
+	<v-container class="ma-0 pa-0">
 
-		<!-- Navigation drawer for game info -->
-		<v-navigation-drawer permanent app clipped>
-			<v-list-item>
-				<v-list-item-content>
-					<v-list-item-title class="title">
-						Game Results
-					</v-list-item-title>
-				</v-list-item-content>
-			</v-list-item>
+		<!-- Background image -->
+		<v-img :src="require('@/assets/inventory.png')">	
 
-			<v-divider></v-divider>
-
-			<v-list	dense nav>
-
-				<!-- Correct round counter -->
+			<!-- Navigation drawer for game info -->
+			<v-navigation-drawer permanent app clipped>
 				<v-list-item>
-					<v-list-item-icon>
-						<v-icon>mdi-check-outline</v-icon>
-					</v-list-item-icon>
-
 					<v-list-item-content>
-						<v-list-item-title>Correct</v-list-item-title>
-						<v-list-item-subtitle>{{ winCount }}</v-list-item-subtitle>
-					</v-list-item-content>
-				</v-list-item>
-
-				<!-- Incorrect round counter -->
-				<v-list-item>
-					<v-list-item-icon>
-						<v-icon>mdi-close-outline</v-icon>
-					</v-list-item-icon>
-
-					<v-list-item-content>
-						<v-list-item-title>Incorrect</v-list-item-title>
-						<v-list-item-subtitle>{{ lossCount }}</v-list-item-subtitle>
-					</v-list-item-content>
-				</v-list-item>
-
-				<!-- Money Gained Counter -->
-				<v-list-item>
-					<v-list-item-icon>
-						<v-icon>mdi-trending-up</v-icon>
-					</v-list-item-icon>
-
-					<v-list-item-content>
-						<v-list-item-title>Money Gained</v-list-item-title>
-						<v-list-item-subtitle>{{ rublesGained }}</v-list-item-subtitle>
-					</v-list-item-content>
-				</v-list-item>
-
-				<!-- Money Lost Counter -->
-				<v-list-item>
-					<v-list-item-icon>
-						<v-icon>mdi-trending-down</v-icon>
-					</v-list-item-icon>
-
-					<v-list-item-content>
-						<v-list-item-title>Money Lost</v-list-item-title>
-						<v-list-item-subtitle>{{ rublesLost }}</v-list-item-subtitle>
-					</v-list-item-content>
-				</v-list-item>
-
-				<!-- Efficiency -->
-				<v-list-item>
-					<v-list-item-icon>
-						<v-icon>mdi-percent</v-icon>
-					</v-list-item-icon>
-
-					<v-list-item-content>
-						<v-list-item-title>Efficiency</v-list-item-title>
-						<v-list-item-subtitle>{{ efficiencyPercentage }}</v-list-item-subtitle>
+						<v-list-item-title class="title">
+							Game Results
+						</v-list-item-title>
 					</v-list-item-content>
 				</v-list-item>
 
 				<v-divider></v-divider>
-				
-				<!-- Settings -->
-				<v-list-item link @click="settingsDialog = true">
-					<v-list-item-icon>
-						<v-icon>mdi-cog</v-icon>
-					</v-list-item-icon>
 
-					<v-list-item-content>
-						<v-list-item-title>Settings...</v-list-item-title>
-					</v-list-item-content>
-				</v-list-item>
+				<v-list	dense nav>
 
-				<v-dialog v-model="settingsDialog" width="500">
+					<!-- Correct round counter -->
+					<v-list-item>
+						<v-list-item-icon>
+							<v-icon>mdi-check-outline</v-icon>
+						</v-list-item-icon>
 
-						<v-card>
-							<v-card-title class="title" primary-title>
-								Game Settings
-							</v-card-title>
+						<v-list-item-content>
+							<v-list-item-title>Correct</v-list-item-title>
+							<v-list-item-subtitle>{{ winCount }}</v-list-item-subtitle>
+						</v-list-item-content>
+					</v-list-item>
 
-							<v-card-text>
-								<v-text-field
-									label="Number of items"
-									v-model="itemCount"
-									type="number"
-									min='2'
-									max='300'
-								></v-text-field>
+					<!-- Incorrect round counter -->
+					<v-list-item>
+						<v-list-item-icon>
+							<v-icon>mdi-close-outline</v-icon>
+						</v-list-item-icon>
 
-								<v-text-field
-									label="Number of choices"
-									v-model="pickLimit"
-									type="number"
-									min='1'
-									:max="maxPickLimit"
-								></v-text-field>
+						<v-list-item-content>
+							<v-list-item-title>Incorrect</v-list-item-title>
+							<v-list-item-subtitle>{{ lossCount }}</v-list-item-subtitle>
+						</v-list-item-content>
+					</v-list-item>
 
-								<v-text-field
-									label="Max Item Value"
-									v-model="maxValue"
-									type="number"
-									:min='minValue + 1'
-									append-icon="mdi-currency-rub"
-								></v-text-field>
+					<!-- Money Gained Counter -->
+					<v-list-item>
+						<v-list-item-icon>
+							<v-icon>mdi-trending-up</v-icon>
+						</v-list-item-icon>
 
-								<v-text-field
-									label="Min Item Value"
-									v-model="minValue"
-									type="number"
-									min='0'
-									:max="maxValue - 1"
-									append-icon="mdi-currency-rub"
-								></v-text-field>
+						<v-list-item-content>
+							<v-list-item-title>Money Gained</v-list-item-title>
+							<v-list-item-subtitle>{{ rublesGained }}</v-list-item-subtitle>
+						</v-list-item-content>
+					</v-list-item>
 
-							</v-card-text>
+					<!-- Money Lost Counter -->
+					<v-list-item>
+						<v-list-item-icon>
+							<v-icon>mdi-trending-down</v-icon>
+						</v-list-item-icon>
 
-							<v-divider></v-divider>
+						<v-list-item-content>
+							<v-list-item-title>Money Lost</v-list-item-title>
+							<v-list-item-subtitle>{{ rublesLost }}</v-list-item-subtitle>
+						</v-list-item-content>
+					</v-list-item>
 
-							<v-card-actions>
-								<v-spacer></v-spacer>
-								<v-btn	color="primary"	text @click="saveSettings">
-									Close
-								</v-btn>
-							</v-card-actions>
-						</v-card>
-					</v-dialog>
-			</v-list>
-		</v-navigation-drawer>
+					<!-- Efficiency -->
+					<v-list-item>
+						<v-list-item-icon>
+							<v-icon>mdi-percent</v-icon>
+						</v-list-item-icon>
 
-		<!-- Items -->
-		<v-row 
-			v-for="item in thisRoundItems" 
-			:key="item.id" 
-			no-gutters
-			align="center"
-			justify="center"
-			>
+						<v-list-item-content>
+							<v-list-item-title>Efficiency</v-list-item-title>
+							<v-list-item-subtitle>{{ efficiencyPercentage }}</v-list-item-subtitle>
+						</v-list-item-content>
+					</v-list-item>
 
-			<v-spacer></v-spacer>
-			<!-- left side: unselected items -->
-			<v-col cols="2">
-				<v-tooltip bottom open-delay='500' v-if="unselectedItems.includes(item)">
-					<template v-slot:activator="{ on }">
-						<img :src="item.image_url" v-on="on" @click="moveToSelected(item)"/>
-					</template>
-					<span>{{ item.long_name }}</span>
-				</v-tooltip>	
-			</v-col>
-			
-			<v-spacer></v-spacer>
+					<v-divider></v-divider>
+					
+					<!-- Settings -->
+					<v-list-item link @click="settingsDialog = true">
+						<v-list-item-icon>
+							<v-icon>mdi-cog</v-icon>
+						</v-list-item-icon>
 
-			<!-- right side: selected items -->
-			<v-col cols="2">
-				<v-tooltip bottom open-delay='500' v-if="selectedItems.includes(item)">
-					<template v-slot:activator="{ on }">
-						<img :src="item.image_url" v-on="on" @click="moveToUnselected(item)"/>
-					</template>
-					<span>{{ item.long_name }}</span>
-				</v-tooltip>	
-			</v-col>
+						<v-list-item-content>
+							<v-list-item-title>Settings...</v-list-item-title>
+						</v-list-item-content>
+					</v-list-item>
 
-			<v-spacer></v-spacer>
+					<v-dialog v-model="settingsDialog" width="500">
 
-			<!-- Show values after submitting answers -->
-			<v-col cols="2">
-				<v-chip v-if="showValues" :color="correctItems.includes(item) ? 'success' : 'error'" :href="item.wiki_url" target="_blank">
-					{{ showRubles(item.market_price) }}
-				</v-chip>
-			</v-col>
+							<v-card>
+								<v-card-title class="title" primary-title>
+									Game Settings
+								</v-card-title>
 
-		</v-row>
+								<v-card-text>
+									<v-text-field
+										label="Number of items"
+										v-model="itemCount"
+										type="number"
+										min='2'
+										max='300'
+									></v-text-field>
 
-		<!-- Submit button -->
-		<v-row>
-			<v-spacer></v-spacer>
-			<v-col cols="1">
-				<v-btn 
-				@click="submitChoices" 
-				:disabled="submitDisabled" 
-				:color="buttonColor">
-					{{showValues ? "Next" : "Submit"}}
-				</v-btn>
-			</v-col>
-			<v-spacer></v-spacer>
-		</v-row>
+									<v-text-field
+										label="Number of choices"
+										v-model="pickLimit"
+										type="number"
+										min='1'
+										:max="maxPickLimit"
+									></v-text-field>
+
+									<v-text-field
+										label="Max Item Value"
+										v-model="maxValue"
+										type="number"
+										:min='minValue + 1'
+										append-icon="mdi-currency-rub"
+									></v-text-field>
+
+									<v-text-field
+										label="Min Item Value"
+										v-model="minValue"
+										type="number"
+										min='0'
+										:max="maxValue - 1"
+										append-icon="mdi-currency-rub"
+									></v-text-field>
+
+								</v-card-text>
+
+								<v-divider></v-divider>
+
+								<v-card-actions>
+									<v-spacer></v-spacer>
+									<v-btn	color="primary"	text @click="saveSettings">
+										Close
+									</v-btn>
+								</v-card-actions>
+							</v-card>
+						</v-dialog>
+				</v-list>
+			</v-navigation-drawer>
+
+			<!-- Items -->
+			<v-row 
+				v-for="item in thisRoundItems" 
+				:key="item.id" 
+				no-gutters
+				align="center"
+				>
+
+				<v-spacer></v-spacer>
+
+				<!-- Show selected values after submitting answers -->
+				<v-col 
+					cols="1" 
+					align="center">
+						<v-chip 
+							v-if="showValues && selectedItems.includes(item)" 
+							:color="correctItems.includes(item) ? 'success' : 'error'" 
+							:href="item.wiki_url" target="_blank"
+						>
+							{{ showRubles(item.market_price) }}
+						</v-chip>
+				</v-col>
+
+				<!-- right side: selected items -->
+				<v-col 
+					cols="2" 
+					align="center">
+						<v-tooltip bottom open-delay='500' v-if="selectedItems.includes(item)">
+							<template v-slot:activator="{ on }">
+								<img :src="item.image_url" v-on="on" @click="moveToUnselected(item)"/>
+							</template>
+							<span>{{ item.long_name }}</span>
+						</v-tooltip>	
+				</v-col>
+
+				<!-- empty column between the two -->
+				<v-spacer></v-spacer>
+
+				<!-- left side: unselected items -->
+				<v-col 
+					cols="2" 
+					align="center">
+						<v-tooltip bottom open-delay='500' v-if="unselectedItems.includes(item)">
+							<template v-slot:activator="{ on }">
+								<img :src="item.image_url" v-on="on" @click="moveToSelected(item)"/>
+							</template>
+							<span>{{ item.long_name }}</span>
+						</v-tooltip>	
+				</v-col>
+
+				<!-- Show unselected values after submitting answers -->
+				<v-col 
+					cols="1" 
+					align="center">
+						<v-chip 
+							v-if="showValues && unselectedItems.includes(item)" 
+							:color="correctItems.includes(item) ? 'success' : 'error'" 
+							:href="item.wiki_url" target="_blank"
+						>
+							{{ showRubles(item.market_price) }}
+						</v-chip>
+				</v-col>
+
+				<v-spacer></v-spacer>
+			</v-row>
+
+			<!-- Submit button -->
+			<v-row>
+				<v-spacer></v-spacer>
+				<v-col cols="1">
+					<v-btn 
+					@click="submitChoices" 
+					:disabled="submitDisabled" 
+					:color="buttonColor"
+					elevation="24"
+					
+					>
+						{{showValues ? "Next" : "Submit"}}
+					</v-btn>
+				</v-col>
+				<v-spacer></v-spacer>
+			</v-row>
+		</v-img>
 	</v-container>
 </template>
 
@@ -228,7 +258,7 @@ export default {
 			selectedItems: [],
 			correctItems: [],
 			showValues: false,
-			buttonColor: '',
+			buttonColor: 'blue',
 
 			// for nav drawer
 			winCount: 0,
@@ -248,7 +278,7 @@ export default {
 			this.selectedItems = [];
 			this.correctItems = [];
 			this.pickCounter = 0;
-			this.buttonColor = '';
+			this.buttonColor = 'blue';
 
 			// loop through req'd num of items
 			for(let i = 0; i < parseInt(this.itemCount); i++){
