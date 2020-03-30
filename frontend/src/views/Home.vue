@@ -2,7 +2,7 @@
 	<v-container class="ma-0 pa-0">
 
 		<!-- Background image -->
-		<v-img :src="require('@/assets/inventory.png')">	
+		<!-- <v-img :src="require('@/assets/inventory.png')">	 -->
 
 			<!-- Navigation drawer for game info -->
 			<v-navigation-drawer permanent app clipped>
@@ -147,12 +147,26 @@
 				</v-list>
 			</v-navigation-drawer>
 
+			<!-- Headers: -->
+			<v-row
+				align="center">
+				<v-spacer></v-spacer>
+				<v-col cols="1"></v-col>
+				<v-col cols="3" align="center"><h3 class="title">Selected</h3></v-col>
+				<v-spacer></v-spacer>
+				<v-col cols="3" align="center"><h3 class="title">Unselected</h3></v-col>
+				<v-col cols="1"></v-col>
+				<v-spacer></v-spacer>
+			</v-row>
+
+
 			<!-- Items -->
 			<v-row 
 				v-for="item in thisRoundItems" 
 				:key="item.id" 
 				no-gutters
 				align="center"
+				
 				>
 
 				<v-spacer></v-spacer>
@@ -170,9 +184,9 @@
 						</v-chip>
 				</v-col>
 
-				<!-- right side: selected items -->
+				<!-- left side: selected items -->
 				<v-col 
-					cols="2" 
+					cols="3" 
 					align="center">
 						<v-tooltip bottom open-delay='500' v-if="selectedItems.includes(item)">
 							<template v-slot:activator="{ on }">
@@ -185,17 +199,19 @@
 				<!-- empty column between the two -->
 				<v-spacer></v-spacer>
 
-				<!-- left side: unselected items -->
-				<v-col 
-					cols="2" 
-					align="center">
-						<v-tooltip bottom open-delay='500' v-if="unselectedItems.includes(item)">
-							<template v-slot:activator="{ on }">
-								<img :src="item.image_url" v-on="on" @click="moveToSelected(item)"/>
-							</template>
-							<span>{{ item.long_name }}</span>
-						</v-tooltip>	
-				</v-col>
+				<!-- right side: unselected items -->
+		
+					<v-col 
+						cols="3" 
+						align="center">
+							<v-tooltip bottom open-delay='500' v-if="unselectedItems.includes(item)">
+								<template v-slot:activator="{ on }">
+									<img :src="item.image_url" v-on="on" @click="moveToSelected(item)"/>
+								</template>
+								<span>{{ item.long_name }}</span>
+							</v-tooltip>	
+					</v-col>
+
 
 				<!-- Show unselected values after submitting answers -->
 				<v-col 
@@ -229,7 +245,7 @@
 				</v-col>
 				<v-spacer></v-spacer>
 			</v-row>
-		</v-img>
+		<!-- </v-img> -->
 	</v-container>
 </template>
 
@@ -505,3 +521,10 @@ export default {
 
 }
 </script>
+
+<style>
+.stash {
+	background-image: url('~@/assets/cubesmall.png');
+	background-repeat: repeat;
+}
+</style>
