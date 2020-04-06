@@ -162,11 +162,9 @@
 
 			<!-- Items -->
 			<v-row 
-				v-for="item in thisRoundItems" 
+				v-for="(item, index) in thisRoundItems" 
 				:key="item.id" 
 				no-gutters
-				align="center"
-				
 				>
 
 				<v-spacer></v-spacer>
@@ -187,13 +185,16 @@
 				<!-- left side: selected items -->
 				<v-col 
 					cols="3" 
-					align="center">
+					align="center"
+					:class="{ firstitem: (index==0), middleitem: (index>0 && index < (thisRoundItems.length-1)), lastitem: (index == (thisRoundItems.length-1)) }"
+					>
 						<v-tooltip bottom open-delay='500' v-if="selectedItems.includes(item)">
 							<template v-slot:activator="{ on }">
 								<img :src="item.image_url" v-on="on" @click="moveToUnselected(item)"/>
 							</template>
 							<span>{{ item.long_name }}</span>
 						</v-tooltip>	
+
 				</v-col>
 
 				<!-- empty column between the two -->
@@ -203,7 +204,9 @@
 		
 					<v-col 
 						cols="3" 
-						align="center">
+						align="center"
+						:class="{ firstitem: (index==0), middleitem: (index>0 && index < (thisRoundItems.length-1)), lastitem: (index == (thisRoundItems.length-1)) }"
+						>
 							<v-tooltip bottom open-delay='500' v-if="unselectedItems.includes(item)">
 								<template v-slot:activator="{ on }">
 									<img :src="item.image_url" v-on="on" @click="moveToSelected(item)"/>
@@ -304,19 +307,25 @@ export default {
 				
 				// reselect item if image is null
 				while(item.image_url == ''){
-					console.log(`${item.long_name} doesn't have an image, reselecting`)
+					// console.log(`${item.long_name} doesn't have an image, reselecting`)
 					item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
 				}
 
 				// reselect item if item has already selected
-				while(this.thisRoundItems.includes(item)){
+				let itemIds = this.thisRoundItems.map(x => x.id)
+				let itemCount = itemIds.filter(x => x.id == item.id).length
+				console.log(`item ids: ${itemIds}`)
+				console.log(`item id is ${item.id}`)
+				console.log(`itemCount is ${itemCount}`)
+
+				while(itemCount > 1){
 					console.log(`${item.long_name} already selected, reselecting`)
 					item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
 				}
 
 				// reselect item if item is over maxValue or under minValue
 				while(item.market_price > this.maxValue || item.market_price < this.minValue){
-					console.log(`${item.long_name} is outside value range, reselecting`)
+					// console.log(`${item.long_name} is outside value range, reselecting`)
 					item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
 				}
 
@@ -526,5 +535,22 @@ export default {
 .stash {
 	background-image: url('~@/assets/cubesmall.png');
 	background-repeat: repeat;
+}
+
+.firstitem {
+	border-top-style: solid;
+	border-left-style: solid;
+	border-right-style: solid;
+}
+
+.middleitem {
+	border-left-style: solid;
+	border-right-style: solid;
+}
+
+.lastitem {
+	border-bottom-style: solid;
+	border-left-style: solid;
+	border-right-style: solid;
 }
 </style>
