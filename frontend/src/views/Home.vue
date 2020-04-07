@@ -268,7 +268,7 @@ export default {
 			pickLimit: 1,
 			pickCounter: 0,
 			maxValue: 1000000000,
-			minValue: 0,			
+			minValue: 1000,			
 
 			// game data
 			allItems: [],
@@ -290,6 +290,7 @@ export default {
 
 		// Generate random items
 		generateItems(){
+
 			// reset game data
 			this.showValues = false;
 			this.thisRoundItems = [];
@@ -299,40 +300,36 @@ export default {
 			this.pickCounter = 0;
 			this.buttonColor = 'blue';
 
-			// loop through req'd num of items
+			// get a copy of all items
+			let copyOfItems = [...this.allItems]
+			
+			// filter: keep only those below max value, above min value, and have a photo
+			copyOfItems = copyOfItems.filter(x => x.market_price < this.maxValue)
+			.filter(x => x.market_price > this.minValue)
+			.filter(x => x.image_url != '')
+
+			// loop through a number of times equal to desired item count
 			for(let i = 0; i < parseInt(this.itemCount); i++){
 
-				// push an item at random from allItems
-				let item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
-				
-				// reselect item if image is null
-				while(item.image_url == ''){
-					// console.log(`${item.long_name} doesn't have an image, reselecting`)
-					item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
+				// edge case: not enough items meet criteria, so print message to console 
+				if(copyOfItems.length == 0){
+					console.log("No more items match specified criteria.")
+				} 
+				// select item at random, remove from array of potential items, add to game arrays
+				else {
+					// get random item index from filtered list
+					let randItemIndex = Math.floor(Math.random()*copyOfItems.length)
+
+					// remove item from filtered list to prevent duplication
+					let randItem = copyOfItems[randItemIndex]
+					copyOfItems.splice(randItemIndex, 1)
+
+					// push to arrays for this round of the game
+					this.unselectedItems.push(randItem)
+					this.thisRoundItems.push(randItem)
 				}
-
-				// reselect item if item has already selected
-				let itemIds = this.thisRoundItems.map(x => x.id)
-				let itemCount = itemIds.filter(x => x.id == item.id).length
-				console.log(`item ids: ${itemIds}`)
-				console.log(`item id is ${item.id}`)
-				console.log(`itemCount is ${itemCount}`)
-
-				while(itemCount > 1){
-					console.log(`${item.long_name} already selected, reselecting`)
-					item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
-				}
-
-				// reselect item if item is over maxValue or under minValue
-				while(item.market_price > this.maxValue || item.market_price < this.minValue){
-					// console.log(`${item.long_name} is outside value range, reselecting`)
-					item = this.allItems[Math.floor(Math.random()*this.allItems.length)]
-				}
-
-				// push item, once satisfactory item has been found
-				this.unselectedItems.push(item)
-				this.thisRoundItems.push(item)
 			}
+			
 		},
 
 		// Move from unselected to selected
